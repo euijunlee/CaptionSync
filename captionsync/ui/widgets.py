@@ -45,6 +45,11 @@ def button(
         "ok": ("#193a34", theme.OK, "#28564b", "#d9fff3"),
     }
     bg, fg, active_bg, active_fg = palette.get(kind, palette["ghost"])
+    disabled_fg = (
+        "#d7edff" if kind == "accent"
+        else "#c6def6" if kind == "soft"
+        else "#aeb7c4"
+    )
     widget = tk.Button(
         parent,
         text=text,
@@ -53,7 +58,7 @@ def button(
         fg=fg,
         activebackground=active_bg,
         activeforeground=active_fg,
-        disabledforeground=theme.FAINT,
+        disabledforeground=disabled_fg,
         relief="flat",
         bd=0,
         highlightthickness=0,
@@ -64,6 +69,12 @@ def button(
         width=width,
         takefocus=0,
     )
+    # Keep disabled controls visibly readable: the action is unavailable, not
+    # invisible.  This is especially important for the blue primary buttons.
+    if kind == "accent":
+        widget.configure(disabledbackground="#315f89")
+    elif kind == "soft":
+        widget.configure(disabledbackground="#263f59")
     if tooltip:
         Tooltip(widget, tooltip)
     return widget
