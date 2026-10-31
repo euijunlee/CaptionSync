@@ -20,6 +20,7 @@ from ..formats import (
     save_subtitle,
 )
 from ..models import MIN_DURATION, Document, History, clone_cues
+from ..autosync import apply_auto_plan, build_auto_plan
 from ..player import PlaybackController
 from ..timecode import format_clock, format_duration, parse_timecode
 from ..transforms import (
@@ -84,6 +85,7 @@ class MainWindow:
         self._was_playing = False
         self._closing = False
         self._preview_wraplength = 600
+        self._auto_sync_key = None
 
         self._icon = make_icon(root)
         root.iconphoto(True, self._icon)
@@ -156,6 +158,8 @@ class MainWindow:
         tool_menu.add_command(label="구간 보정", command=lambda: self._focus_tool(3))
         tool_menu.add_command(label="음성 자동 정렬", command=lambda: self._focus_tool(4))
         tool_menu.add_separator()
+        tool_menu.add_command(label="자동 싱크 실행", accelerator="Ctrl+Shift+A", command=self.run_auto_sync)
+        tool_menu.add_separator()
         tool_menu.add_command(label="FFmpeg 경로 지정…", command=self.choose_ffmpeg)
         tool_menu.add_command(label="FFmpeg 감지 상태", command=self.show_ffmpeg_status)
         menubar.add_cascade(label="도구", menu=tool_menu)
@@ -217,6 +221,15 @@ class MainWindow:
             tooltip="영상/오디오 열기 · MP4는 FFmpeg 필요  (Ctrl+Shift+O)",
         )
         self.media_btn.pack(side="left", padx=(6, 0))
+        self.auto_btn = button(
+            actions,
+            "자동 싱크",
+            self.run_auto_sync,
+            kind="soft",
+            pady=6,
+            tooltip="영상 음성과 자막을 자동으로 맞춥니다  (Ctrl+Shift+A)",
+        )
+        self.auto_btn.pack(side="left", padx=(6, 0))
         self.save_btn = button(
             actions,
             "저장",
@@ -676,6 +689,7 @@ class MainWindow:
             "<Control-O>": self.open_media_dialog,
             "<Control-s>": self.save,
             "<Control-S>": self.save_as,
+            "<Control-Shift-A>": self.run_auto_sync,
             "<Control-z>": self.undo,
             "<Control-y>": self.redo,
             "<Control-Z>": self.redo,
@@ -1127,6 +1141,7 @@ class MainWindow:
         if self.segments:
             message += " · 음성 자동 정렬 사용 가능"
         self._after_document_loaded(doc, message)
+        self._maybe_auto_sync()
 
     def save(self) -> bool:
         if not self.doc.cues:
@@ -1296,6 +1311,72 @@ class MainWindow:
         if info.analysis:
             self.config["last_dir"] = str(info.source.parent)
             save_config(self.config)
+        self._maybe_auto_sync()
+
+    def _maybe_auto_sync(self) -> None:
+        """Run once when a subtitle and analyzed media are both available."""
+
+        if not self.doc.cues or not self.segments or self._media_loading:
+            return
+        key = (
+            str(self.doc.path) if self.doc.path else id(self.doc),
+            str(self.media.source) if self.media else None,
+        )
+        if key == self._auto_sync_key:
+            return
+        self._auto_sync_key = key
+        self.root.after(120, self.run_auto_sync)
+
+    def run_auto_sync(self) -> None:
+        """Build and apply the automatic plan, preserving one-step undo."""
+
+        if not self._require_doc():
+            return
+        if not self.segments:
+            self.set_status("자동 싱크에는 먼저 영상/오디오 분석이 필요합니다.", "warn")
+            return
+        self.auto_btn.configure(state="disabled", text="싱크 계산 중…")
+        self.progress_label.configure(text="자동 싱크 계산 중…")
+        self.set_status("음성 구간과 자막을 자동으로 매칭하고 있습니다…", "info")
+
+        def worker() -> None:
+            try:
+                plan = build_auto_plan(self.doc.cues, self.segments)
+            except Exception as exc:  # noqa: BLE001
+                self.root.after(0, lambda: self._auto_sync_finished(None, str(exc)))
+                return
+            self.root.after(0, lambda: self._auto_sync_finished(plan, None))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _auto_sync_finished(self, plan, error: str | None) -> None:
+        self.auto_btn.configure(state="normal", text="자동 싱크")
+        self.progress_label.configure(text="")
+        if error:
+            self.set_status(f"자동 싱크 실패: {error}", "error")
+            return
+        if plan is None or plan.matched < 3:
+            message = "\n".join(plan.warnings if plan else ["계산 결과가 없습니다."])
+            messagebox.showwarning("자동 싱크", message, parent=self.root)
+            self.set_status("자동 싱크를 적용하지 못했습니다.", "warn")
+            return
+
+        report = "\n".join(plan.describe())
+        if plan.confidence < 0.85:
+            answer = messagebox.askyesno(
+                "자동 싱크 결과 확인",
+                report + "\n\n신뢰도가 낮습니다. 그래도 적용할까요?",
+                parent=self.root,
+            )
+            if not answer:
+                self.set_status("자동 싱크 적용을 취소했습니다.", "warn")
+                return
+        ok, _ = self._commit_edit("자동 싱크", lambda cues: apply_auto_plan(cues, plan))
+        if ok:
+            self.set_status(
+                f"자동 싱크 적용 완료 · {plan.changed}개 수정 · Ctrl+Z로 되돌릴 수 있습니다.",
+                "ok",
+            )
 
     def _media_failed(self, message: str) -> None:
         self._media_loading = False

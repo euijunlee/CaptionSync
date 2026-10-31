@@ -320,6 +320,8 @@ def find_ffmpeg(configured: str | None = None) -> str | None:
             str(Path.cwd() / "ffmpeg.exe"),
             str(Path(__file__).resolve().parent.parent / "ffmpeg.exe"),
             str(Path(os.environ.get("LOCALAPPDATA", "")) / "ffmpeg" / "bin" / "ffmpeg.exe"),
+            str(Path(os.environ.get("PROGRAMFILES", "")) / "ffmpeg" / "bin" / "ffmpeg.exe"),
+            str(Path(os.environ.get("ChocolateyInstall", "")) / "bin" / "ffmpeg.exe"),
         ]
     )
     for candidate in candidates:
@@ -344,11 +346,15 @@ def extract_audio(
         "-y",
         "-i",
         str(media_path),
+        "-map",
+        "0:a:0?",
         "-vn",
         "-ac",
         "1",
         "-ar",
         "16000",
+        "-af",
+        "highpass=f=120,lowpass=f=3800",
         "-c:a",
         "pcm_s16le",
         str(output_path),
