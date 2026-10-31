@@ -69,12 +69,6 @@ def button(
         width=width,
         takefocus=0,
     )
-    # Keep disabled controls visibly readable: the action is unavailable, not
-    # invisible.  This is especially important for the blue primary buttons.
-    if kind == "accent":
-        widget.configure(disabledbackground="#315f89")
-    elif kind == "soft":
-        widget.configure(disabledbackground="#263f59")
     if tooltip:
         Tooltip(widget, tooltip)
     return widget
