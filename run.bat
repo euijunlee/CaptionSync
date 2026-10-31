@@ -9,18 +9,15 @@ if errorlevel 1 goto no_python
 python -c "import tkinter, captionsync" >nul 2>nul
 if errorlevel 1 goto python_error
 
-where pythonw >nul 2>nul
-if not errorlevel 1 (
-    pythonw -c "import tkinter, captionsync" >nul 2>nul
-    if not errorlevel 1 (
-        start "CaptionSync" pythonw -m captionsync %*
-        exit /b 0
-    )
-)
-
-echo [CaptionSync] pythonw could not start; using visible Python mode.
+echo [CaptionSync] Starting in diagnostic mode...
 python -m captionsync %*
-exit /b %errorlevel%
+if errorlevel 1 (
+    echo.
+    echo [CaptionSync] The application stopped with an error.
+    pause
+    exit /b 1
+)
+exit /b 0
 
 :no_python
 echo.
