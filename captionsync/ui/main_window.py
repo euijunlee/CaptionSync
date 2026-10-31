@@ -891,9 +891,14 @@ class MainWindow:
     def _update_preview(self) -> None:
         if not self.doc.cues:
             self.preview_label.configure(
-                text="자막 파일을 열고 재생하면 현재 자막이 여기에 표시됩니다.",
+                text=(
+                    "자막 파일을 열어 시작하세요\n"
+                    "Ctrl+Shift+O로 미디어 열기\n"
+                    "(FFmpeg가 있으면 MP4/MKV도 지원)"
+                ),
                 fg=theme.FAINT,
                 font=theme.FONT_SMALL,
+                height=4,
             )
             self.preview_meta.configure(text="대기 중")
             return

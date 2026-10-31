@@ -236,14 +236,18 @@ class Timeline(tk.Canvas):
                     width=1,
                 )
         else:
-            self.create_text(
-                self._width / 2,
-                (RULER_H + self._height) / 2,
-                text="자막 파일을 열어 시작하세요\nCtrl+O  ·  SRT / VTT / ASS",
-                fill=theme.FAINT,
-                font=(theme.FONT[0], 13),
-                justify="center",
-            )
+            center = (RULER_H + self._height) / 2
+            for line_number, text in enumerate(
+                ("자막 파일을 열어 시작하세요", "Ctrl+O  ·  SRT / VTT / ASS")
+            ):
+                self.create_text(
+                    self._width / 2,
+                    center + (line_number - 0.5) * 22,
+                    text=text,
+                    fill=theme.FAINT,
+                    font=(theme.FONT[0], 13),
+                    anchor="center",
+                )
 
         self._draw_playhead()
 
@@ -321,14 +325,26 @@ class Timeline(tk.Canvas):
 
     def _draw_waveform(self, top: int, height: int) -> None:
         if not self.analysis or not self.analysis.envelope:
-            self.create_text(
-                self._width / 2,
-                top + height / 2,
-                text="미디어를 열면 파형이 표시됩니다\n(FFmpeg가 있으면 MP4/MKV도 지원)",
-                fill=theme.FAINT,
-                font=theme.FONT_SMALL,
-                justify="center",
+            center = top + height / 2
+            message_lines = (
+                "자막 파일을 열어 시작하세요",
+                "Ctrl+Shift+O로 미디어 열기",
+                "(FFmpeg가 있으면 MP4/MKV도 지원)",
             )
+            # Draw each line independently.  Tk Canvas can compress newline
+            # line boxes on small/high-DPI layouts, making the empty-state
+            # hint look as if the Korean text is overlapping.
+            line_gap = min(22, max(16, height // 8))
+            for line_number, text in enumerate(message_lines):
+                y = center + (line_number - 1) * line_gap
+                self.create_text(
+                    self._width / 2,
+                    y,
+                    text=text,
+                    fill=theme.FAINT,
+                    font=theme.FONT_SMALL,
+                    anchor="center",
+                )
             return
 
         envelope = self.analysis.envelope
