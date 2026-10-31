@@ -193,7 +193,7 @@ class MainWindow:
             fg=theme.TEXT,
             font=(theme.FONT[0], 16, "bold"),
         ).pack(side="left")
-        pill(title_row, "SKETCH STUDIO", theme.VIOLET, "#fffaf0").pack(
+        pill(title_row, "EDIT STUDIO", theme.VIOLET, "#211d3b").pack(
             side="left", padx=(8, 0), pady=(2, 0)
         )
         tk.Label(

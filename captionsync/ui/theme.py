@@ -1,4 +1,4 @@
-"""Warm paper-and-ink theme and ttk style configuration."""
+"""Professional dark editing theme and ttk style configuration."""
 
 from __future__ import annotations
 
@@ -37,24 +37,24 @@ __all__ = [
 ]
 
 # Palette ---------------------------------------------------------------
-BG = "#f1ede3"
-PANEL = "#fffdf7"
-PANEL_ALT = "#f8f4ea"
-PANEL_HOVER = "#ebe3d4"
-BORDER = "#c8bba5"
-BORDER_LIGHT = "#9e8f78"
-TEXT = "#29343a"
-MUTED = "#687277"
-FAINT = "#9b968b"
-ACCENT = "#2f6f8f"
-ACCENT_DIM = "#24566f"
-ACCENT_SOFT = "#d9e8ed"
-VIOLET = "#a47b4e"
-OK = "#3e8065"
-WARN = "#ad6c27"
-DANGER = "#a94e4e"
-WAVE = "#9bb6b0"
-WAVE_SPEECH = "#5d9185"
+BG = "#18191c"
+PANEL = "#24262b"
+PANEL_ALT = "#1e2024"
+PANEL_HOVER = "#30343b"
+BORDER = "#3a3e46"
+BORDER_LIGHT = "#555b66"
+TEXT = "#edf0f4"
+MUTED = "#a5acb7"
+FAINT = "#707783"
+ACCENT = "#3d9cff"
+ACCENT_DIM = "#2366a6"
+ACCENT_SOFT = "#1c3d5d"
+VIOLET = "#a58cff"
+OK = "#4fd1a1"
+WARN = "#f1b35b"
+DANGER = "#ff6f85"
+WAVE = "#4b7486"
+WAVE_SPEECH = "#3d9d9b"
 
 # Fonts (filled in by setup_theme) -------------------------------------
 FONT = ("Segoe UI", 10)

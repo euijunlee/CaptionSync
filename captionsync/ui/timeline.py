@@ -374,7 +374,7 @@ class Timeline(tk.Canvas):
         if len(points) >= 6:
             self.create_polygon(
                 points,
-                fill="#dcebe1",
+                fill="#193a34",
                 outline="",
             )
             self.create_line(
@@ -404,17 +404,17 @@ class Timeline(tk.Canvas):
                 top,
                 x1,
                 top + height,
-                fill="#b7d1ca",
+                fill="#285f63",
                 outline="",
                 stipple="gray25",
             )
 
     def _cue_colors(self, index: int) -> tuple[str, str, str]:
         if index == self.selected:
-            return theme.ACCENT, "#d9e8ed", theme.TEXT
+            return theme.ACCENT, "#b9dcff", "#071421"
         if index in self.active:
-            return theme.ACCENT_DIM, theme.ACCENT, "#fffdf7"
-        return "#d7e2df", "#a4bdb7", theme.TEXT
+            return theme.ACCENT_DIM, theme.ACCENT, "#ffffff"
+        return "#263447", "#3c506c", "#cbd8e8"
 
     def _draw_cues(self) -> None:
         if not self.doc:

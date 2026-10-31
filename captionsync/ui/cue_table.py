@@ -60,7 +60,7 @@ class CueTable(tk.Frame):
         self.tree.tag_configure("odd", background=theme.PANEL, foreground=theme.TEXT)
         self.tree.tag_configure("even", background=theme.PANEL_ALT, foreground=theme.TEXT)
         self.tree.tag_configure(
-            "active", background="#dcebe1", foreground=theme.TEXT
+            "active", background="#193a34", foreground="#d9fff3"
         )
         self.tree.tag_configure(
             "selected", background=theme.ACCENT_DIM, foreground="#ffffff"
