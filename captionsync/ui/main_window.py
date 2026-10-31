@@ -42,7 +42,7 @@ from . import theme
 from .cue_table import CueTable
 from .timeline import Timeline
 from .tools_panel import ToolsPanel
-from .widgets import button, make_icon, pill
+from .widgets import button, make_icon, make_menu_icon, pill
 
 SHORTCUTS = [
     ("Space", "재생 / 일시정지"),
@@ -109,41 +109,44 @@ class MainWindow:
     # ------------------------------------------------------------------
     def _build_menu(self) -> None:
         menubar = tk.Menu(self.root, tearoff=0)
+        self._menu_icons = []
+
+        def menu_icon(kind: str):
+            icon = make_menu_icon(self.root, kind)
+            self._menu_icons.append(icon)
+            return icon
+
+        def add_command(menu, label: str, command, kind: str, **kwargs):
+            menu.add_command(
+                label=label,
+                command=command,
+                image=menu_icon(kind),
+                compound="left",
+                **kwargs,
+            )
 
         file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(
-            label="자막 열기…", accelerator="Ctrl+O", command=self.open_subtitle_dialog
-        )
-        file_menu.add_command(
-            label="미디어 열기…",
-            accelerator="Ctrl+Shift+O",
-            command=self.open_media_dialog,
-        )
+        add_command(file_menu, "자막 열기…", self.open_subtitle_dialog, "file", accelerator="Ctrl+O")
+        add_command(file_menu, "미디어 열기…", self.open_media_dialog, "media", accelerator="Ctrl+Shift+O")
         file_menu.add_separator()
-        file_menu.add_command(label="저장", accelerator="Ctrl+S", command=self.save)
-        file_menu.add_command(
-            label="다른 이름으로 저장…", accelerator="Ctrl+Shift+S", command=self.save_as
-        )
+        add_command(file_menu, "저장", self.save, "save", accelerator="Ctrl+S")
+        add_command(file_menu, "다른 이름으로 저장…", self.save_as, "save", accelerator="Ctrl+Shift+S")
         file_menu.add_separator()
-        file_menu.add_command(label="종료", command=self.on_close)
+        add_command(file_menu, "종료", self.on_close, "tool")
         menubar.add_cascade(label="파일", menu=file_menu)
 
         edit_menu = tk.Menu(menubar, tearoff=0)
-        edit_menu.add_command(label="되돌리기", accelerator="Ctrl+Z", command=self.undo)
-        edit_menu.add_command(
-            label="다시 실행", accelerator="Ctrl+Y", command=self.redo
-        )
+        add_command(edit_menu, "되돌리기", self.undo, "undo", accelerator="Ctrl+Z")
+        add_command(edit_menu, "다시 실행", self.redo, "redo", accelerator="Ctrl+Y")
         edit_menu.add_separator()
-        edit_menu.add_command(label="선택 자막 삭제", accelerator="Delete", command=self.delete_selected)
-        edit_menu.add_command(label="시간순으로 정렬", command=self.sort_cues)
+        add_command(edit_menu, "선택 자막 삭제", self.delete_selected, "tool", accelerator="Delete")
+        add_command(edit_menu, "시간순으로 정렬", self.sort_cues, "view")
         menubar.add_cascade(label="편집", menu=edit_menu)
 
         view_menu = tk.Menu(menubar, tearoff=0)
-        view_menu.add_command(
-            label="타임라인 전체 보기", accelerator="Ctrl+0", command=self.timeline_fit
-        )
-        view_menu.add_command(label="확대", accelerator="Ctrl++", command=lambda: self.timeline_zoom(1.5))
-        view_menu.add_command(label="축소", accelerator="Ctrl+-", command=lambda: self.timeline_zoom(1 / 1.5))
+        add_command(view_menu, "타임라인 전체 보기", self.timeline_fit, "view", accelerator="Ctrl+0")
+        add_command(view_menu, "확대", lambda: self.timeline_zoom(1.5), "view", accelerator="Ctrl++")
+        add_command(view_menu, "축소", lambda: self.timeline_zoom(1 / 1.5), "view", accelerator="Ctrl+-")
         view_menu.add_separator()
         self.snap_var = tk.BooleanVar(value=bool(self.config.get("snap", True)))
         view_menu.add_checkbutton(
@@ -154,22 +157,22 @@ class MainWindow:
         menubar.add_cascade(label="보기", menu=view_menu)
 
         tool_menu = tk.Menu(menubar, tearoff=0)
-        tool_menu.add_command(label="전체 이동", command=lambda: self._focus_tool(0))
-        tool_menu.add_command(label="비율 · 드리프트 보정", command=lambda: self._focus_tool(1))
-        tool_menu.add_command(label="FPS 보정", command=lambda: self._focus_tool(2))
-        tool_menu.add_command(label="구간 보정", command=lambda: self._focus_tool(3))
-        tool_menu.add_command(label="음성 자동 정렬", command=lambda: self._focus_tool(4))
+        add_command(tool_menu, "전체 이동", lambda: self._focus_tool(0), "tool")
+        add_command(tool_menu, "비율 · 드리프트 보정", lambda: self._focus_tool(1), "tool")
+        add_command(tool_menu, "FPS 보정", lambda: self._focus_tool(2), "tool")
+        add_command(tool_menu, "구간 보정", lambda: self._focus_tool(3), "tool")
+        add_command(tool_menu, "음성 자동 정렬", lambda: self._focus_tool(4), "auto")
         tool_menu.add_separator()
-        tool_menu.add_command(label="자동 싱크 실행", accelerator="Ctrl+Shift+A", command=self.run_auto_sync)
-        tool_menu.add_command(label="영상에서 한글 자막 생성", command=self.generate_korean_subtitles)
+        add_command(tool_menu, "자동 싱크 실행", self.run_auto_sync, "auto", accelerator="Ctrl+Shift+A")
+        add_command(tool_menu, "영상에서 한글 자막 생성", self.generate_korean_subtitles, "caption")
         tool_menu.add_separator()
-        tool_menu.add_command(label="FFmpeg 경로 지정…", command=self.choose_ffmpeg)
-        tool_menu.add_command(label="FFmpeg 감지 상태", command=self.show_ffmpeg_status)
+        add_command(tool_menu, "FFmpeg 경로 지정…", self.choose_ffmpeg, "tool")
+        add_command(tool_menu, "FFmpeg 감지 상태", self.show_ffmpeg_status, "view")
         menubar.add_cascade(label="도구", menu=tool_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)
-        help_menu.add_command(label="사용법", accelerator="F1", command=self.show_help)
-        help_menu.add_command(label="CaptionSync 정보", command=self.show_about)
+        add_command(help_menu, "사용법", self.show_help, "help", accelerator="F1")
+        add_command(help_menu, "CaptionSync 정보", self.show_about, "help")
         menubar.add_cascade(label="도움말", menu=help_menu)
 
         self.root.configure(menu=menubar)

@@ -21,6 +21,7 @@ __all__ = [
     "ScrollableFrame",
     "Tooltip",
     "make_icon",
+    "make_menu_icon",
 ]
 
 
@@ -66,6 +67,47 @@ def button(
     if tooltip:
         Tooltip(widget, tooltip)
     return widget
+
+
+def make_menu_icon(root, kind: str, color: str | None = None) -> tk.PhotoImage:
+    """Create a tiny crisp menu glyph without requiring an icon package."""
+
+    color = color or theme.ACCENT
+    image = tk.PhotoImage(master=root, width=16, height=16)
+    image.put(theme.PANEL_ALT, to=(0, 0, 15, 15))
+    ink = color
+    light = theme.BORDER_LIGHT
+    if kind in {"file", "media", "save"}:
+        image.put(ink, to=(3, 2, 12, 13))
+        image.put(theme.PANEL_ALT, to=(5, 4, 10, 5))
+        image.put(light, to=(5, 8, 10, 8))
+        image.put(light, to=(5, 10, 10, 10))
+    elif kind in {"undo", "redo"}:
+        image.put(ink, to=(3, 7, 12, 8))
+        if kind == "undo":
+            image.put(ink, to=(3, 7, 6, 4))
+            image.put(ink, to=(3, 8, 6, 11))
+        else:
+            image.put(ink, to=(9, 7, 12, 4))
+            image.put(ink, to=(9, 8, 12, 11))
+    elif kind in {"auto", "caption"}:
+        image.put(ink, to=(3, 4, 12, 11))
+        image.put(theme.PANEL_ALT, to=(5, 6, 10, 9))
+        image.put(light, to=(6, 7, 9, 7))
+    elif kind == "view":
+        image.put(light, to=(3, 3, 12, 3))
+        image.put(ink, to=(3, 6, 12, 6))
+        image.put(light, to=(3, 9, 12, 9))
+        image.put(ink, to=(3, 12, 8, 12))
+    elif kind == "tool":
+        image.put(ink, to=(4, 3, 11, 5))
+        image.put(ink, to=(7, 5, 8, 12))
+        image.put(light, to=(4, 12, 11, 13))
+    else:
+        image.put(ink, to=(4, 2, 11, 13))
+        image.put(theme.PANEL_ALT, to=(7, 4, 8, 9))
+        image.put(theme.PANEL_ALT, to=(7, 11, 8, 11))
+    return image
 
 
 def entry(
