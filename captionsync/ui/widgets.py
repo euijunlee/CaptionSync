@@ -38,6 +38,7 @@ def button(
 ) -> tk.Button:
     palette = {
         "accent": (theme.ACCENT, "#071421", "#65b5ff", "#071421"),
+        "apply": (theme.ACCENT, theme.COMPLEMENT, "#65b5ff", "#fff0ad"),
         "soft": (theme.ACCENT_SOFT, "#b9dcff", "#2b5b86", "#ffffff"),
         "ghost": (theme.PANEL_HOVER, theme.TEXT, theme.BORDER_LIGHT, theme.TEXT),
         "bare": (theme.PANEL, theme.MUTED, theme.PANEL_HOVER, theme.TEXT),
@@ -46,7 +47,8 @@ def button(
     }
     bg, fg, active_bg, active_fg = palette.get(kind, palette["ghost"])
     disabled_fg = (
-        "#d7edff" if kind == "accent"
+        "#ffe9a3" if kind == "apply"
+        else "#d7edff" if kind == "accent"
         else "#c6def6" if kind == "soft"
         else "#aeb7c4"
     )

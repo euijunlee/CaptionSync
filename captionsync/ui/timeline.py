@@ -325,6 +325,11 @@ class Timeline(tk.Canvas):
 
     def _draw_waveform(self, top: int, height: int) -> None:
         if not self.analysis or not self.analysis.envelope:
+            # The no-document message is rendered by redraw().  Do not draw a
+            # second empty-state message here or the two Korean strings will
+            # overlap in the center of the timeline.
+            if not self.doc or not self.doc.cues:
+                return
             center = top + height / 2
             message_lines = (
                 "자막 파일을 열어 시작하세요",

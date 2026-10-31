@@ -53,6 +53,7 @@ VIOLET = "#a58cff"
 OK = "#4fd1a1"
 WARN = "#f1b35b"
 DANGER = "#ff6f85"
+COMPLEMENT = "#ffd166"
 WAVE = "#4b7486"
 WAVE_SPEECH = "#3d9d9b"
 

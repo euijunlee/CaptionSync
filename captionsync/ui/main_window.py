@@ -459,10 +459,10 @@ class MainWindow:
             action_row,
             "적용",
             self._apply_cue_editor,
-            kind="accent",
+            kind="apply",
             padx=8,
             pady=4,
-            font=theme.FONT_TINY,
+            font=(theme.FONT[0], 10, "bold"),
         )
         self.cue_apply_btn.pack(side="left", fill="x", expand=True)
         self.cue_nudge_buttons = []
