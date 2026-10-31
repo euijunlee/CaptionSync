@@ -36,7 +36,7 @@ from ..transforms import (
     shift_index_range,
     suggest_offset,
 )
-from ..transcription import TranscriptionError, transcribe_korean
+from ..transcription import TranscriptionError, available_backend, transcribe_korean
 from . import theme
 from .cue_table import CueTable
 from .timeline import Timeline
@@ -1322,6 +1322,14 @@ class MainWindow:
         if info.analysis:
             self.config["last_dir"] = str(info.source.parent)
             save_config(self.config)
+        if not self.doc.cues and self.config.get("auto_caption_on_media", True):
+            if available_backend():
+                self.root.after(250, self.generate_korean_subtitles)
+            else:
+                self.set_status(
+                    "미디어가 준비되었습니다 · ‘한글 자막 생성’을 누르거나 faster-whisper를 설치하세요.",
+                    "warn",
+                )
         self._maybe_auto_sync()
 
     def _maybe_auto_sync(self) -> None:

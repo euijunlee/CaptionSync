@@ -1,0 +1,2 @@
+# Optional local Korean speech-to-text support
+faster-whisper>=1.0
