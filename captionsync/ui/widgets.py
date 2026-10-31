@@ -36,12 +36,12 @@ def button(
     tooltip: str | None = None,
 ) -> tk.Button:
     palette = {
-        "accent": (theme.ACCENT, "#08111e", "#82b6ff", "#08111e"),
-        "soft": (theme.ACCENT_SOFT, "#bfd8ff", "#223a5d", "#eaf2ff"),
-        "ghost": (theme.PANEL_HOVER, theme.TEXT, theme.BORDER_LIGHT, "#ffffff"),
+        "accent": (theme.ACCENT, "#fffdf7", "#3e819f", "#fffdf7"),
+        "soft": (theme.ACCENT_SOFT, theme.ACCENT_DIM, "#c8dfe5", theme.TEXT),
+        "ghost": (theme.PANEL_HOVER, theme.TEXT, theme.BORDER_LIGHT, theme.TEXT),
         "bare": (theme.PANEL, theme.MUTED, theme.PANEL_HOVER, theme.TEXT),
-        "danger": ("#3a1d25", theme.DANGER, "#542a35", "#ffd7de"),
-        "ok": ("#16352e", theme.OK, "#1f4a40", "#d9fff3"),
+        "danger": ("#f2dada", theme.DANGER, "#e7c2c2", theme.DANGER),
+        "ok": ("#dcebe1", theme.OK, "#c7dfd0", theme.OK),
     }
     bg, fg, active_bg, active_fg = palette.get(kind, palette["ghost"])
     widget = tk.Button(
@@ -303,7 +303,7 @@ class Tooltip:
 def make_icon(root: tk.Tk) -> tk.PhotoImage:
     width = height = 64
     image = tk.PhotoImage(master=root, width=width, height=height)
-    image.put("#111722", to=(0, 0, width, height))
+    image.put(theme.PANEL_ALT, to=(0, 0, width, height))
     image.put("#5c9dff", to=(0, 0, width, 4))
     image.put("#5c9dff", to=(0, height - 4, width, height))
     bars = [(10, 24), (19, 40), (28, 30), (37, 48), (46, 34), (55, 20)]

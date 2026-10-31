@@ -28,7 +28,7 @@ class Timeline(tk.Canvas):
     ):
         super().__init__(
             master,
-            bg="#0b0f16",
+            bg=theme.PANEL_ALT,
             highlightthickness=0,
             bd=0,
             cursor="xterm",
@@ -273,7 +273,7 @@ class Timeline(tk.Canvas):
         self._lane_count = max(1, len(lane_ends))
 
     def _draw_ruler(self) -> None:
-        self.create_rectangle(0, 0, self._width, RULER_H, fill="#0e131c", outline="")
+        self.create_rectangle(0, 0, self._width, RULER_H, fill=theme.PANEL, outline="")
         self.create_line(0, RULER_H, self._width, RULER_H, fill=theme.BORDER, width=1)
 
         span = self.view_span
@@ -295,7 +295,7 @@ class Timeline(tk.Canvas):
                     RULER_H,
                     x,
                     self._height,
-                    fill="#151c28",
+                    fill=theme.PANEL_HOVER,
                     width=1,
                 )
                 self.create_text(
@@ -358,7 +358,7 @@ class Timeline(tk.Canvas):
         if len(points) >= 6:
             self.create_polygon(
                 points,
-                fill="#173330",
+                fill="#dcebe1",
                 outline="",
             )
             self.create_line(
@@ -371,7 +371,7 @@ class Timeline(tk.Canvas):
                 fill=theme.WAVE,
                 width=1,
             )
-        self.create_line(0, middle, self._width, middle, fill="#1d2b33")
+        self.create_line(0, middle, self._width, middle, fill=theme.BORDER)
 
     def _draw_speech_bands(self, top: int, height: int) -> None:
         if not self.segments:
@@ -388,17 +388,17 @@ class Timeline(tk.Canvas):
                 top,
                 x1,
                 top + height,
-                fill="#2d7f70",
+                fill="#b7d1ca",
                 outline="",
                 stipple="gray25",
             )
 
     def _cue_colors(self, index: int) -> tuple[str, str, str]:
         if index == self.selected:
-            return theme.ACCENT, "#a9c8ff", "#071019"
+            return theme.ACCENT, "#d9e8ed", theme.TEXT
         if index in self.active:
-            return "#2b5b9b", "#4f86cf", "#ffffff"
-        return "#243149", "#34425c", "#cbd5e6"
+            return theme.ACCENT_DIM, theme.ACCENT, "#fffdf7"
+        return "#d7e2df", "#a4bdb7", theme.TEXT
 
     def _draw_cues(self) -> None:
         if not self.doc:

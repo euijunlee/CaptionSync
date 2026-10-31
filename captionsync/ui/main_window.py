@@ -6,6 +6,7 @@ import queue
 import shutil
 import tempfile
 import threading
+import textwrap
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
@@ -192,7 +193,7 @@ class MainWindow:
             fg=theme.TEXT,
             font=(theme.FONT[0], 16, "bold"),
         ).pack(side="left")
-        pill(title_row, "SYNC STUDIO", theme.VIOLET, "#241f3d").pack(
+        pill(title_row, "SKETCH STUDIO", theme.VIOLET, "#fffaf0").pack(
             side="left", padx=(8, 0), pady=(2, 0)
         )
         tk.Label(
@@ -483,26 +484,26 @@ class MainWindow:
     def _build_center(self, parent) -> None:
         preview = tk.Frame(
             parent,
-            bg="#070a0f",
+            bg=theme.PANEL_ALT,
             height=148,
             highlightthickness=1,
             highlightbackground=theme.BORDER,
         )
         preview.pack(fill="x", padx=12, pady=(12, 8))
         preview.pack_propagate(False)
-        preview_header = tk.Frame(preview, bg="#070a0f")
+        preview_header = tk.Frame(preview, bg=theme.PANEL_ALT)
         preview_header.pack(fill="x", padx=14, pady=(10, 0))
         tk.Label(
             preview_header,
             text="PREVIEW",
-            bg="#070a0f",
+            bg=theme.PANEL_ALT,
             fg=theme.FAINT,
             font=(theme.FONT[0], 8, "bold"),
         ).pack(side="left")
         self.preview_meta = tk.Label(
             preview_header,
             text="대기 중",
-            bg="#070a0f",
+            bg=theme.PANEL_ALT,
             fg=theme.FAINT,
             font=theme.FONT_TINY,
         )
@@ -511,18 +512,20 @@ class MainWindow:
         self.preview_label = tk.Label(
             preview,
             text="자막 파일을 열고 재생하면 현재 자막이 여기에 표시됩니다.",
-            bg="#070a0f",
+            bg=theme.PANEL_ALT,
             fg=theme.FAINT,
             font=theme.FONT_SMALL,
             wraplength=self._preview_wraplength,
             justify="center",
+            anchor="center",
+            height=4,
         )
         self.preview_label.pack(expand=True, fill="both", padx=28, pady=(0, 8))
         preview.bind("<Configure>", self._on_preview_configure)
 
         timeline_card = tk.Frame(
             parent,
-            bg="#0b0f16",
+            bg=theme.PANEL_ALT,
             highlightthickness=1,
             highlightbackground=theme.BORDER,
         )
@@ -901,11 +904,19 @@ class MainWindow:
             )
             self.preview_meta.configure(text=format_clock(self.playhead))
             return
-        lines = [self.doc.cues[index].display_text() for index in active[:2]]
+        char_width = max(20, int(self._preview_wraplength / 14))
+        lines = []
+        for index in active[:2]:
+            text = self.doc.cues[index].display_text().replace("\n", " ").strip()
+            wrapped = textwrap.wrap(text, width=char_width, break_long_words=False)
+            lines.extend(wrapped or [""])
+        if len(lines) > 4:
+            lines = lines[:3] + ["…"]
         self.preview_label.configure(
             text="\n".join(lines),
             fg=theme.TEXT,
-            font=(theme.FONT[0], 16, "bold"),
+            font=(theme.FONT[0], 15, "bold"),
+            height=4,
         )
         if len(active) > 2:
             self.preview_meta.configure(text=f"자막 {len(active)}개 중 2개 표시")
