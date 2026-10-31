@@ -36,6 +36,7 @@ from ..transforms import (
     shift_index_range,
     suggest_offset,
 )
+from ..transcription import TranscriptionError, transcribe_korean
 from . import theme
 from .cue_table import CueTable
 from .timeline import Timeline
@@ -159,6 +160,7 @@ class MainWindow:
         tool_menu.add_command(label="음성 자동 정렬", command=lambda: self._focus_tool(4))
         tool_menu.add_separator()
         tool_menu.add_command(label="자동 싱크 실행", accelerator="Ctrl+Shift+A", command=self.run_auto_sync)
+        tool_menu.add_command(label="영상에서 한글 자막 생성", command=self.generate_korean_subtitles)
         tool_menu.add_separator()
         tool_menu.add_command(label="FFmpeg 경로 지정…", command=self.choose_ffmpeg)
         tool_menu.add_command(label="FFmpeg 감지 상태", command=self.show_ffmpeg_status)
@@ -230,6 +232,15 @@ class MainWindow:
             tooltip="영상 음성과 자막을 자동으로 맞춥니다  (Ctrl+Shift+A)",
         )
         self.auto_btn.pack(side="left", padx=(6, 0))
+        self.caption_btn = button(
+            actions,
+            "한글 자막 생성",
+            self.generate_korean_subtitles,
+            kind="ghost",
+            pady=6,
+            tooltip="영상 음성을 인식해 한국어 자막을 생성합니다",
+        )
+        self.caption_btn.pack(side="left", padx=(6, 0))
         self.save_btn = button(
             actions,
             "저장",
@@ -1390,6 +1401,54 @@ class MainWindow:
         )
         if answer:
             self.choose_ffmpeg()
+
+    def generate_korean_subtitles(self) -> None:
+        """Create a Korean subtitle document from the loaded media."""
+
+        if not self.media or not self.media.analysis:
+            self.set_status("먼저 영상 또는 오디오를 열어 주세요.", "warn")
+            return
+        if self.doc.cues and not self._guard_discard():
+            return
+        self.caption_btn.configure(state="disabled", text="자막 생성 중…")
+        self.progress_label.configure(text="한국어 음성인식 준비 중…")
+        self.set_status("영상 음성을 분석해 한국어 자막을 만들고 있습니다…", "info")
+        audio_path = self.media.playback_path
+
+        def worker() -> None:
+            try:
+                cues = transcribe_korean(
+                    audio_path,
+                    progress=lambda value: self.root.after(
+                        0,
+                        lambda: self.progress_label.configure(
+                            text=f"한국어 음성인식 {float(value) * 100:.0f}%"
+                        ),
+                    ),
+                )
+            except TranscriptionError as exc:
+                self.root.after(0, lambda: self._caption_generation_finished(None, str(exc)))
+                return
+            self.root.after(0, lambda: self._caption_generation_finished(cues, None))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _caption_generation_finished(self, cues, error: str | None) -> None:
+        self.caption_btn.configure(state="normal", text="한글 자막 생성")
+        self.progress_label.configure(text="")
+        if error:
+            messagebox.showerror("한글 자막 생성", error, parent=self.root)
+            self.set_status(error.splitlines()[0], "error")
+            return
+        doc = Document(
+            kind="srt",
+            cues=cues or [],
+            encoding="utf-8",
+            newline="\r\n",
+            dirty=True,
+        )
+        self._after_document_loaded(doc, f"한국어 자막 {len(doc.cues)}개를 생성했습니다.")
+        self.set_status("한국어 자막 생성 완료 · 다른 이름으로 저장해 파일을 보관하세요.", "ok")
 
     def choose_ffmpeg(self) -> None:
         path = filedialog.askopenfilename(
